@@ -1,0 +1,4 @@
+Model,Content Weight,Collaborative Weight,Precision@10,Recall@10,NDCG@10
+Content-Based,1.0,0.0,0.0036,0.036,0.0198
+SVD Collaborative,0.0,1.0,0.0116,0.116,0.0553
+Hybrid,0.25,0.75,0.0114,0.114,0.0573
