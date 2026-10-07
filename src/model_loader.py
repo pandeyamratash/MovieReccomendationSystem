@@ -12,6 +12,7 @@ from src.config import (
     USER_FACTORS_PATH,
     MOVIE_FACTORS_PATH,
     USER_RATED_MOVIES_PATH,
+    USER_LIKED_MOVIES_PATH,
     SVD_MODEL_PATH
 )
 
@@ -77,6 +78,10 @@ def load_collaborative_models():
         USER_RATED_MOVIES_PATH
     )
 
+    user_liked_movies = joblib.load(
+        USER_LIKED_MOVIES_PATH
+    )
+
     return {
         "user_id_to_index": user_id_to_index,
         "movie_id_to_index": movie_id_to_index,
@@ -84,5 +89,6 @@ def load_collaborative_models():
         "user_factors": user_factors,
         "movie_factors": movie_factors,
         "svd_model": svd_model,
-        "user_rated_movies": user_rated_movies
+        "user_rated_movies": user_rated_movies,
+        "user_liked_movies": user_liked_movies
     }

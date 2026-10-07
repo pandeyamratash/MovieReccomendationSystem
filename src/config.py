@@ -68,3 +68,10 @@ SVD_MODEL_PATH = (
 USER_RATED_MOVIES_PATH = (
     MODELS_DIR / "user_rated_movies.pkl"
 )
+USER_LIKED_MOVIES_PATH = (
+    MODELS_DIR / "user_liked_movies.pkl"
+)
+# Hybrid recommendation configuration
+
+CONTENT_WEIGHT = 0.25
+COLLAB_WEIGHT = 0.75
