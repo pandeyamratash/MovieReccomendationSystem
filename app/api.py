@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import numpy as np
-from parso import python
 from scipy import sparse
 from sklearn.metrics.pairwise import linear_kernel
 
