@@ -1,15 +1,16 @@
 # pyright: reportMissingImports=false
-import numpy as np
 
+from pathlib import Path
+
+import numpy as np
+from parso import python
 from scipy import sparse
 from sklearn.metrics.pairwise import linear_kernel
 
-from src.config import CONTENT_WEIGHT
-
-from src.hybrid.ranker import (
-    rank_hybrid_recommendations
-)
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
+from src.config import CONTENT_WEIGHT
 
 from src.model_loader import (
     load_content_models,
@@ -20,13 +21,11 @@ from src.content_based.similarity import (
     create_movie_index,
     recommend_movies
 )
-from src.config import (
-    CONTENT_WEIGHT
-)
 
 from src.hybrid.ranker import (
     rank_hybrid_recommendations
 )
+from src.tmdb_posters import get_movie_poster
 
 app = FastAPI(
     title="Movie Recommendation System",
@@ -35,7 +34,10 @@ app = FastAPI(
 )
 
 
-# Load content-based model artifacts once
+# --------------------------------------------------
+# Load model artifacts
+# --------------------------------------------------
+
 movie_features, tfidf_vectorizer, tfidf_matrix = (
     load_content_models()
 )
@@ -47,6 +49,8 @@ movie_indices = create_movie_index(
 collaborative_models = (
     load_collaborative_models()
 )
+
+
 # Map movie features to collaborative-model indices
 movie_feature_to_train_index = (
     movie_features["movieId"]
@@ -59,6 +63,10 @@ movie_feature_to_train_index = (
 )
 
 
+# --------------------------------------------------
+# Health endpoint
+# --------------------------------------------------
+
 @app.get("/health")
 def health_check():
     return {
@@ -66,32 +74,91 @@ def health_check():
         "service": "movie-recommendation-api"
     }
 
+@app.get("/movies/popular")
+def get_popular_movies(limit: int = 20):
+    movies = movie_features[
+        movie_features["title"].notna()
+    ].head(limit).copy()
+
+    results = []
+
+    for _, movie in movies.iterrows():
+        title = str(movie["title"])
+        poster_url = get_movie_poster(title)
+
+        results.append({
+            "movieId": int(movie["movieId"]),
+            "title": title,
+            "genres": str(movie["genres"]),
+            "poster_url": poster_url,
+        })
+
+    return results
+# --------------------------------------------------
+# Content-based recommendation
+# --------------------------------------------------
+
+@app.get("/movies/search")
+def search_movies(q: str, limit: int = 20):
+    if not q.strip():
+        return []
+
+    matches = movie_features[
+        movie_features["title"]
+        .str.contains(q, case=False, na=False, regex=False)
+    ].head(limit)
+
+    results = []
+
+    for _, movie in matches.iterrows():
+        title = str(movie["title"])
+
+        results.append({
+            "movieId": int(movie["movieId"]),
+            "title": title,
+            "genres": str(movie["genres"]),
+            "poster_url": get_movie_poster(title),
+        })
+
+    return results
+
+# --------------------------------------------------
+# Movie-to-movie content recommendation
+# --------------------------------------------------
+
+
 
 @app.get("/recommend/movie/{movie_title}")
-def recommend_similar_movies(
-    movie_title: str,
-    n: int = 10
-):
+def recommend_movie(movie_title: str, n: int = 10):
     recommendations = recommend_movies(
         movie_title,
         movie_features,
         tfidf_matrix,
         movie_indices,
-        n=n
+        n=n,
     )
 
     if isinstance(recommendations, str):
-        return {
-            "error": recommendations
-        }
+        return {"error": recommendations}
+
+    results = []
+
+    for _, movie in recommendations.iterrows():
+        title = str(movie["title"])
+        movie_data = movie.to_dict()
+        movie_data["poster_url"] = get_movie_poster(title)
+        results.append(movie_data)
 
     return {
         "movie": movie_title,
-        "recommendations": (
-            recommendations
-            .to_dict(orient="records")
-        )
+        "model": "content-based",
+        "recommendations": results,
     }
+
+# --------------------------------------------------
+# Hybrid recommendation logic
+# --------------------------------------------------
+
 def generate_hybrid_user_recommendations(
     user_id,
     n=10
@@ -113,7 +180,7 @@ def generate_hybrid_user_recommendations(
     if not user_liked_movies:
         return []
 
-    # Map liked movie IDs to content-model indices
+    # Map movie IDs to content-model indices
     movie_id_to_feature_index = {
         movie_id: idx
         for idx, movie_id in enumerate(
@@ -196,6 +263,12 @@ def generate_hybrid_user_recommendations(
     )
 
     return recommendations
+
+
+# --------------------------------------------------
+# Personalized recommendation endpoint
+# --------------------------------------------------
+
 @app.get("/recommend/user/{user_id}")
 def recommend_for_user(
     user_id: int,
@@ -233,3 +306,33 @@ def recommend_for_user(
             .to_dict(orient="records")
         )
     }
+
+
+# --------------------------------------------------
+# Frontend
+# --------------------------------------------------
+
+FRONTEND_DIR = (
+    Path(__file__).resolve().parent / "frontend"
+)
+
+POSTERS_DIR = FRONTEND_DIR / "posters"
+
+
+app.mount(
+    "/posters",
+    StaticFiles(
+        directory=POSTERS_DIR
+    ),
+    name="posters"
+)
+
+
+app.mount(
+    "/",
+    StaticFiles(
+        directory=FRONTEND_DIR,
+        html=True
+    ),
+    name="frontend"
+)

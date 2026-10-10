@@ -35,6 +35,8 @@ WEIGHTED_TFIDF_VECTORIZER_PATH = (
 WEIGHTED_TFIDF_MATRIX_PATH = (
     MODELS_DIR / "weighted_tfidf_matrix.npz"
 )
+IMPROVED_TFIDF_VECTORIZER_PATH = MODELS_DIR / "improved_tfidf_vectorizer.pkl"
+IMPROVED_TFIDF_MATRIX_PATH = MODELS_DIR / "improved_tfidf_matrix.npz"
 # Collaborative filtering artifacts
 
 USER_ITEM_MATRIX_PATH = (

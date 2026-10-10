@@ -1,6 +1,18 @@
+
+# Secrets
+.env
+.env.*
+
+# Python
 .venv/
 __pycache__/
-*.pyc
+*.py[cod]
 .ipynb_checkpoints/
-.env
-*.log
+
+# Local environment and editor
+.vscode/
+.DS_Store
+
+# Large datasets and generated model artifacts
+data/raw/
+models/

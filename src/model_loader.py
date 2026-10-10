@@ -6,6 +6,8 @@ from src.config import (
     MOVIE_FEATURES_PATH,
     WEIGHTED_TFIDF_VECTORIZER_PATH,
     WEIGHTED_TFIDF_MATRIX_PATH,
+    IMPROVED_TFIDF_VECTORIZER_PATH,
+    IMPROVED_TFIDF_MATRIX_PATH,
     USER_ID_TO_INDEX_PATH,
     MOVIE_ID_TO_INDEX_PATH,
     INDEX_TO_MOVIE_ID_PATH,
@@ -22,27 +24,17 @@ from src.content_based.vectorizer import (
 
 
 def load_content_models():
-    """
-    Load movie features and weighted TF-IDF artifacts.
-    """
-
-    movie_features = load_movie_features(
-        MOVIE_FEATURES_PATH
-    )
+    movie_features = load_movie_features(MOVIE_FEATURES_PATH)
 
     tfidf_vectorizer = joblib.load(
-        WEIGHTED_TFIDF_VECTORIZER_PATH
+        IMPROVED_TFIDF_VECTORIZER_PATH
     )
 
     tfidf_matrix = sparse.load_npz(
-        WEIGHTED_TFIDF_MATRIX_PATH
+        IMPROVED_TFIDF_MATRIX_PATH
     )
 
-    return (
-        movie_features,
-        tfidf_vectorizer,
-        tfidf_matrix
-    )
+    return movie_features, tfidf_vectorizer, tfidf_matrix
 
 
 def load_collaborative_models():
