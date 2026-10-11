@@ -14,5 +14,5 @@ __pycache__/
 .DS_Store
 
 # Large datasets and generated model artifacts
-data/raw/
+# data/raw/
 models/
