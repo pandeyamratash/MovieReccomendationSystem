@@ -9,7 +9,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
-
+MOVIES_CSV = RAW_DATA_DIR / "movies.csv"
+RATINGS_CSV = RAW_DATA_DIR / "ratings.csv"
+TAGS_CSV = RAW_DATA_DIR / "tags.csv"
 
 # Model directory
 MODELS_DIR = PROJECT_ROOT / "models"
